@@ -1,0 +1,11 @@
+Notes 
+
+
+zip 
+
+unzip 
+tar -tf myfolder.tar.gz
+
+
+copy file scp
+scp myfile.txt myfile2.txt remoteuser@remoteserver:/remote/folder/
