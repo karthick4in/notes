@@ -1,0 +1,22 @@
+ 
+wget https://downloads.apache.org/kafka/3.6.0/kafka_2.13-3.6.0.tgz
+tar -xzf kafka_2.13-3.6.0.tgz
+ 
+
+start zookeeper
+bin/zookeeper-server-start.sh config/zookeeper.properties
+
+Start Kafka Server
+bin/kafka-server-start.sh config/server.properties
+
+Create a Kafka Topic
+bin/kafka-topics.sh --create --topic mytopic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+
+Produce Messages:
+bin/kafka-console-producer.sh --topic mytopic --bootstrap-server localhost:9092
+
+
+Consume Messages:
+bin/kafka-console-consumer.sh --topic mytopic --from-beginning --bootstrap-server localhost:9092
+
+
