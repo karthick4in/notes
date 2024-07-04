@@ -1,3 +1,50 @@
+import * as XLSX from 'xlsx';
+
+const generateExcel = () => {
+    // Create a new workbook
+    const workbook = XLSX.utils.book_new();
+
+    // Create a worksheet with some data
+    const data = [
+        ["Name", "Age", "City"],
+        ["Alice", 30, "New York"],
+        ["Bob", 25, "Los Angeles"]
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+    // Define cell fill style
+    const cellStyle = {
+        fill: {
+            patternType: "solid",
+            fgColor: { rgb: "FFFF0000" } // Red background color
+        }
+    };
+
+    // Apply the style to a specific cell
+    worksheet['A1'].s = cellStyle;
+    worksheet['B1'].s = cellStyle;
+    worksheet['C1'].s = cellStyle;
+
+    // Add the worksheet to the workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+    // Write the workbook to a file (or generate a download in a browser)
+    XLSX.writeFile(workbook, "example.xlsx");
+};
+
+// Example usage in a React component
+const App = () => {
+    return (
+        <div>
+            <button onClick={generateExcel}>Generate Excel</button>
+        </div>
+    );
+};
+
+export default App;
+ 
+
 const XLSX = require('xlsx-style');
 
 // Create a new workbook
