@@ -1,3 +1,31 @@
+const XLSX = require('xlsx-style');
+
+// Create a new workbook
+const workbook = {
+    SheetNames: [],
+    Sheets: {}
+};
+
+// Create a new worksheet
+const worksheet = {};
+
+// Add data to the worksheet
+worksheet['A1'] = { v: 'Hello', t: 's', s: {
+    fill: {
+        patternType: 'solid',
+        fgColor: { rgb: 'FFFF00' }, // Yellow fill
+        bgColor: { rgb: 'FF0000' }  // Red background
+    }
+}};
+
+// Add the worksheet to the workbook
+workbook.SheetNames.push('Sheet1');
+workbook.Sheets['Sheet1'] = worksheet;
+
+// Write the workbook to a file
+XLSX.writeFile(workbook, 'styled.xlsx');
+
+
 import React from 'react';
 import XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
