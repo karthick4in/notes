@@ -1,4 +1,54 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+
+const generateExcelWithExcelJS = async () => {
+    // Create a new workbook
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sheet1');
+
+    // Define columns
+    worksheet.columns = [
+        { header: 'Name', key: 'name', width: 10 },
+        { header: 'Age', key: 'age', width: 10 },
+        { header: 'City', key: 'city', width: 10 }
+    ];
+
+    // Add data
+    worksheet.addRow(['Alice', 30, 'New York']);
+    worksheet.addRow(['Bob', 25, 'Los Angeles']);
+
+    // Apply style to the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell(cell => {
+        cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFFF0000' } // Red background color
+        };
+        cell.font = {
+            color: { argb: 'FFFFFFFF' }, // White text color
+            bold: true
+        };
+    });
+
+    // Write to buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    // Save file
+    saveAs(new Blob([buffer]), 'example_with_exceljs.xlsx');
+};
+
+// Example usage in a React component
+const App = () => {
+    return (
+        <div>
+            <button onClick={generateExcelWithExcelJS}>Generate Excel with ExcelJS</button>
+        </div>
+    );
+};
+
+export default App;
+ import * as XLSX from 'xlsx';
 
 const generateExcel = () => {
     // Create a new workbook
