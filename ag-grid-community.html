@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AG Grid Example with Sorting, Filtering, Pagination, and Editing</title>
+    <!-- Include AG Grid CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-grid.css">
+    <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css">
+</head>
+<body>
+
+    <!-- AG Grid Div -->
+    <div id="myGrid" class="ag-theme-alpine" style="height: 500px; width: 600px;"></div>
+
+    <!-- Include AG Grid JavaScript -->
+    <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.noStyle.js"></script>
+    <script>
+        // Your JavaScript code goes here
+        // Specify the columns
+const columnDefs = [
+    { headerName: "ID", field: "id", sortable: true, filter: 'agNumberColumnFilter', editable: true },
+    { headerName: "Name", field: "name", sortable: true, filter: 'agTextColumnFilter', editable: true },
+    { headerName: "Age", field: "age", sortable: true, filter: 'agNumberColumnFilter', editable: true },
+    { headerName: "Country", field: "country", sortable: true, filter: 'agTextColumnFilter', editable: true }
+];
+
+// Specify the data
+const rowData = [
+    { id: 1, name: "John Doe", age: 25, country: "USA" },
+    { id: 2, name: "Jane Smith", age: 30, country: "UK" },
+    { id: 3, name: "Kevin Lee", age: 28, country: "Canada" },
+    { id: 4, name: "Laura Green", age: 35, country: "Australia" }
+];
+
+// Grid options
+const gridOptions = {
+    columnDefs: columnDefs,
+    rowData: rowData,
+    pagination: true,           // Enable pagination
+    paginationPageSize: 2,      // Page size
+    enableSorting: true,        // Enable sorting
+    enableFilter: true,         // Enable filtering
+    defaultColDef: {
+        sortable: true,         // Make columns sortable by default
+        filter: true,           // Enable filtering on columns by default
+        editable: true          // Make cells editable by default
+    }
+};
+
+// Initialize the grid
+const eGridDiv = document.querySelector('#myGrid');
+new agGrid.Grid(eGridDiv, gridOptions);
+
+    </script>
+
+</body>
+</html>
