@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Page Title</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ext-language_tools.js" type="text/javascript"></script>
+
+</head>
+<body> 
+<div id="editor" style="height: 400px; width: 100%;"></div>
+<script>
+const editor = ace.edit("editor");
+editor.setTheme("ace/theme/monokai");
+editor.session.setMode("ace/mode/sql");
+editor.setOptions({
+    enableBasicAutocompletion: true,
+    enableLiveAutocompletion: true,
+    enableSnippets: true
+});
+
+// Custom SQL keywords for auto-completion
+const staticWordCompleter = {
+    getCompletions: function(editor, session, pos, prefix, callback) {
+        const wordList = [
+            { caption: "SELECT", value: "SELECT", meta: "keyword" },
+            { caption: "FROM", value: "FROM", meta: "keyword" },
+            { caption: "WHERE", value: "WHERE", meta: "keyword" },
+            { caption: "users", value: "users", meta: "table" },
+            { caption: "orders", value: "orders", meta: "table" },
+            { caption: "id", value: "id", meta: "column" },
+            { caption: "name", value: "name", meta: "column" }
+        ];
+        callback(null, wordList.map(function(word) {
+            return {
+                caption: word.caption,
+                value: word.value,
+                meta: word.meta
+            };
+        }));
+    }
+}
+
+// Add custom completer
+editor.completers = [staticWordCompleter];
+</script>
+</body>
+</html>
+
+
