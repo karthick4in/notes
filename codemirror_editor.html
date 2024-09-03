@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>codemirror </title>
+    <!-- Include AG Grid CSS -->
+    <!-- Include CodeMirror CSS and JavaScript -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/sql/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/sql-hint.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
+
+</head>
+<body>
+<textarea id="sql-editor"></textarea>
+ 
+    <script>
+         // Initialize CodeMirror
+const editor = CodeMirror.fromTextArea(document.getElementById('sql-editor'), {
+    mode: 'text/x-sql',
+    theme: 'material',
+    lineNumbers: true,
+    extraKeys: { "Ctrl-Space": "autocomplete" }, // Enable Ctrl+Space for autocomplete
+    hintOptions: {
+        tables: {
+            // Define tables and columns for auto-suggestions
+            users: ["id", "name", "email", "created_at"],
+            orders: ["id", "user_id", "total", "created_at"],
+            products: ["id", "name", "price", "category_id"]
+        }
+    }
+});
+
+    </script>
+</body>
+</html>
