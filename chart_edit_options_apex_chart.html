@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexCharts Custom Editor</title>
+  
+  <!-- ApexCharts -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  
+  <style>
+    #chart {
+      max-width: 650px;
+      margin: 35px auto;
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    .controls label {
+      margin-bottom: 5px;
+    }
+    .controls input, .controls select {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>ApexCharts Custom Editor</h1>
+
+  <!-- Controls for customizing the chart -->
+  <div class="controls">
+    <label for="chartType">Chart Type:</label>
+    <select id="chartType">
+      <option value="line">Line</option>
+      <option value="bar">Bar</option>
+      <option value="pie">Pie</option>
+      <option value="bubble">bubble </option>
+    </select>
+
+    <label for="chartColor">Chart Color:</label>
+    <input type="color" id="chartColor" value="#FF5733">
+
+    <label for="xAxisTitle">X-Axis Title:</label>
+    <input type="text" id="xAxisTitle" placeholder="X-Axis Title">
+
+    <label for="yAxisTitle">Y-Axis Title:</label>
+    <input type="text" id="yAxisTitle" placeholder="Y-Axis Title">
+
+    <button id="updateChart">Update Chart</button>
+  </div>
+
+  <!-- Chart Container -->
+  <div id="chart"></div>
+
+  <script>
+    // Initial chart options
+    const options = {
+      chart: {
+        type: 'line',
+        height: 350
+      },
+      series: [{
+        name: 'Sales',
+        data: [30, 40, 35, 50, 49, 60, 70, 91, 125]
+      }],
+      xaxis: {
+        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+        title: {
+          text: 'X-Axis Title'
+        }
+      },
+      yaxis: {
+        title: {
+          text: 'Y-Axis Title'
+        }
+      },
+      colors: ['#FF5733'],
+      title: {
+        text: 'Sales Data',
+        align: 'left'
+      }
+    };
+
+    // Create the chart
+    const chart = new ApexCharts(document.querySelector("#chart"), options);
+    chart.render();
+
+    // Update chart options on button click
+    document.querySelector("#updateChart").addEventListener('click', function() {
+      const chartType = document.querySelector("#chartType").value;
+      const chartColor = document.querySelector("#chartColor").value;
+      const xAxisTitle = document.querySelector("#xAxisTitle").value;
+      const yAxisTitle = document.querySelector("#yAxisTitle").value;
+
+      // Update the chart with new options
+      chart.updateOptions({
+        chart: {
+          type: chartType
+        },
+        colors: [chartColor],
+        xaxis: {
+          title: {
+            text: xAxisTitle
+          }
+        },
+        yaxis: {
+          title: {
+            text: yAxisTitle
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
