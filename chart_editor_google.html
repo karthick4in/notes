@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Load Google Charts library -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      // Load the necessary chart packages
+      google.charts.load('current', {'packages':['corechart', 'charteditor']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      let chartWrapper;
+      let chartEditor;
+
+      // Function to draw the chart, either from localStorage or with default settings
+      function drawChart() {
+        // Create data for the chart
+        const data = google.visualization.arrayToDataTable([
+          ['Year', 'Sales', 'Expenses'],
+          ['2018',  1000,      400],
+          ['2019',  1170,      460],
+          ['2020',  660,       1120],
+          ['2021',  1030,      540]
+        ]);
+
+        // Get chart options from localStorage, if available
+        let savedOptions = localStorage.getItem('chartOptions');
+        savedOptions = savedOptions ? JSON.parse(savedOptions) : {
+          title: 'Company Performance',
+          hAxis: {title: 'Year'},
+          vAxis: {title: 'Amount'},
+          legend: { position: 'bottom' }
+        };
+		const chartType =  savedOptions['chartType'] || 'LineChart' ; 
+        // Create a ChartWrapper
+        chartWrapper = new google.visualization.ChartWrapper({
+           chartType:chartType     ,
+          dataTable: data,
+          options: savedOptions,
+          containerId: 'chart_div'
+        });
+
+        // Draw the chart
+        chartWrapper.draw();
+
+        // Initialize ChartEditor
+        chartEditor = new google.visualization.ChartEditor();
+      }
+
+      // Function to open the ChartEditor
+      function openChartEditor() {
+        // Open the chart editor dialog
+        chartEditor.openDialog(chartWrapper);
+
+        // Listen to the "ok" event to save the updated chart settings
+        google.visualization.events.addListener(chartEditor, 'ok', function() {
+          // Get the updated chart wrapper after customization
+          chartWrapper = chartEditor.getChartWrapper();
+
+          // Get the updated chart options
+         let  updatedOptions = chartWrapper.getOptions();
+         updatedOptions["chartType"]  = chartWrapper.getChartType()
+debugger;
+          // Save updated options to localStorage
+          localStorage.setItem('chartOptions', JSON.stringify(updatedOptions)); 
+
+          // Redraw the chart with the new options
+          chartWrapper.draw();
+        });
+      }
+    </script>
+  </head>
+
+  <body>
+    <!-- Button to open the chart editor -->
+    <button onclick="openChartEditor()">Customize Chart</button>
+
+    <!-- Container for the chart -->
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+  </body>
+</html>
