@@ -1,2 +1,3 @@
-AI init to test
+Create api with ai
+
 
