@@ -3,6 +3,7 @@
 # Ollama Model Export Script
 # Usage: bash ollama-export.sh vicuna:7b
 # SPDX-License-Identifier: MIT (https://ncurl.xyz/s/o_o6DVqIR)
+# link https://drive.google.com/drive/folders/1u6F_Wiq2yFmw9bMo2hfZU0PwZ9l6Tl0m
 # https://gist.github.com/supersonictw/f6cf5e599377132fe5e180b3d495c553
 
 
