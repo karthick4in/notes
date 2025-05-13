@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>luckysheet Test</title>
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/luckysheet@latest/dist/plugins/css/pluginsCss.css' />
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/luckysheet@latest/dist/plugins/plugins.css' />
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/luckysheet@latest/dist/css/luckysheet.css' />
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/luckysheet@latest/dist/assets/iconfont/iconfont.css' />
+<script src="https://cdn.jsdelivr.net/npm/luckysheet@latest/dist/plugins/js/plugin.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luckysheet@latest/dist/luckysheet.umd.js"></script>
+<style>
+div#luckysheet {
+    margin: 30px 0px !important;
+}
+</style>
+</head>
+<body>
+<button onclick="readTest()">Read Test</button><button onclick="writeTest1()">Write Test</button>
+ 
+<div id="luckysheet" style="margin:20px 0px;padding:0px;position:absolute;width:100%;height:calc(100% - 30px);left: 0px;top: 0px;"></div>
+
+
+<script>
+function writeTest1(){
+debugger;
+const sheetId = 0; //luckysheet.getSheetByIndex(0).index;
+luckysheet.setCellValue(3, 1, 123, sheetId);
+}
+function readTest(){
+debugger;
+const sheets = luckysheet.getAllSheets();
+const firstSheet = sheets[0];
+const data = firstSheet.data;
+
+data.forEach((row, r) => {
+    if (!row) return;
+    row.forEach((cell, c) => {
+        if (cell) {
+            console.log(`(${r}, ${c}) = ${cell.v}`);
+        }
+    });
+});
+
+}
+    $(function () {
+let celldata = [
+  { r: 0, c: 0, v: { v: 'Hello Welcome' } }, // A1 = "Hello"
+  { r: 1, c: 1, v: { v: 42 } }       // B2 = 42
+]
+
+      let  data =  [{
+  name: 'Sheet1',
+  color: '',
+  index: 0,
+  status: 1,
+  order: 0,
+  row: 20,
+  column: 10,
+  defaultRowHeight: 19,
+  defaultColWidth: 73,
+  celldata: celldata,
+  config: {},
+  scrollLeft: 0,
+  scrollTop: 0,
+  luckysheet_select_save: [],
+  calcChain: [],
+  isPivotTable: false,
+  pivotTable: {},
+  filter_select: {},
+  filter: null,
+  luckysheet_alternateformat_save: [],
+  luckysheet_conditionformat_save: [],
+  frozen: {},
+  chart: [],
+  zoomRatio: 1,
+  image: [],
+  showGridLines: 1
+}];
+let myCellUpdateHandler = function (r, c, value, oldValue) {
+debugger;
+  console.log('Default handler');
+ console.log(`Cell [${r}, ${c}] changed ${oldValue}`);
+};
+        luckysheet.create({
+  container: 'luckysheet',
+  data: data, // your sheet data 
+  hook: {
+      cellUpdated: function (r, c, value, oldValue) {
+        myCellUpdateHandler(r, c, value, oldValue);
+      }
+    }
+});
+
+
+   
+    })
+</script>
+
+</body>
+</html>
