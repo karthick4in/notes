@@ -1,0 +1,109 @@
+#include "AudioTools.h"
+#include "BluetoothA2DPSink.h"
+#include <MD_MAX72xx.h>
+#include <SPI.h>
+
+/* ===== I2S PINS ===== */
+#define I2S_BCLK  27
+#define I2S_LRC   26
+#define I2S_DOUT  25
+
+
+/*
+MAX7219	ESP32 GPIO	Notes
+DIN	GPIO 23 (MOSI)	⚠️ Not GPIO 13
+CLK	GPIO 18 (SCK)	⚠️ Not GPIO 14
+CS	GPIO 15	✅ Correct
+VCC	5V	OK
+GND	GND	OK
+
+*/
+
+/* ===== MAX7219 ===== */
+#define MAX_DEVICES 4
+#define CS_PIN 15
+MD_MAX72XX mx(MD_MAX72XX::FC16_HW, CS_PIN, MAX_DEVICES);
+
+/* ===== AUDIO ===== */
+I2SStream i2s;
+BluetoothA2DPSink a2dp_sink(i2s);
+
+/* ===== SPECTRUM ===== */
+#define NUM_BANDS 8
+volatile uint8_t bandLevel[NUM_BANDS] = {0};
+uint8_t peak[NUM_BANDS] = {0};
+
+/* ===== RAW AUDIO TAP ===== */
+void raw_audio_callback(const uint8_t *data, uint32_t len) {
+  const int16_t *pcm = (int16_t *)data;
+  int samples = len / 2;
+
+  uint32_t sum[NUM_BANDS] = {0};
+  uint16_t count[NUM_BANDS] = {0};
+
+  for (int i = 0; i < samples; i++) {
+    int band = (i * NUM_BANDS) / samples;
+    if (band >= NUM_BANDS) band = NUM_BANDS - 1;
+
+    int16_t v = abs(pcm[i]);
+    sum[band] += v;
+    count[band]++;
+  }
+
+  for (int b = 0; b < NUM_BANDS; b++) {
+    if (count[b] == 0) continue;
+
+    // RMS-style average
+    uint32_t avg = sum[b] / count[b];
+
+    // Auto scaling (tune this)
+    uint8_t level = map(avg, 0, 6000, 0, 8);
+    level = constrain(level, 0, 8);
+
+    // Decay
+    if (level > bandLevel[b])
+      bandLevel[b] = level;
+    else if (bandLevel[b] > 0)
+      bandLevel[b]--;
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  esp_bt_controller_mem_release(ESP_BT_MODE_BLE);
+
+  /* I2S */
+  auto cfg = i2s.defaultConfig(TX_MODE);
+  cfg.sample_rate = 44100;
+  cfg.channels = 2;
+  cfg.bits_per_sample = 16;
+  cfg.pin_bck  = I2S_BCLK;
+  cfg.pin_ws   = I2S_LRC;
+  cfg.pin_data = I2S_DOUT;
+  i2s.begin(cfg);
+
+  /* MAX7219 */
+  mx.begin();
+  mx.control(MD_MAX72XX::INTENSITY, 6);
+  mx.clear();
+
+  /* BLUETOOTH */
+  a2dp_sink.set_raw_stream_reader(raw_audio_callback);
+  a2dp_sink.set_volume(100);
+  a2dp_sink.start("ESP32_MUSIC");
+}
+
+void loop() {
+  mx.clear();
+
+  for (int x = 0; x < 32; x++) {
+    int band = x % NUM_BANDS;
+    uint8_t h = bandLevel[band];
+
+    for (int y = 0; y < h; y++) {
+      mx.setPoint(7 - y, x, true);
+    }
+  }
+
+  delay(30);
+}
