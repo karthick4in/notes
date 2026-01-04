@@ -1,0 +1,184 @@
+#include "AudioTools.h"
+#include "BluetoothA2DPSink.h"
+#include <MD_Parola.h>
+#include <MD_MAX72xx.h>
+#include <SPI.h>
+
+/* ================= DISPLAY ================= */
+#define HARDWARE_TYPE MD_MAX72XX::FC16_HW
+#define MAX_DEVICES 4
+#define CS_PIN 15
+
+MD_Parola display(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
+
+/* ================= I2S ================= */
+#define I2S_BCLK  27
+#define I2S_LRC   26
+#define I2S_DOUT  25
+
+/* ================= AUDIO ================= */
+I2SStream i2s;
+BluetoothA2DPSink a2dp_sink(i2s);
+
+/* ================= DISPLAY MODE ================= */
+enum DisplayMode {
+  MODE_WAIT,
+  MODE_CONNECTED_TEXT,
+  MODE_SONG,
+  MODE_VU
+};
+
+DisplayMode displayMode = MODE_WAIT;
+
+/* ================= BLUETOOTH STATE ================= */
+volatile bool btConnected = false;
+unsigned long btConnectedAt = 0;
+#define CONNECT_TEXT_TIME 2000   // 2 sec CONNECTED text
+
+/* ================= SONG INFO ================= */
+String songTitle = "";
+unsigned long songDisplayUntil = 0;
+#define SONG_DISPLAY_TIME 8000   // 8 sec song name
+
+/* ================= VU ================= */
+#define NUM_BANDS 8
+uint8_t bandLevel[NUM_BANDS] = {0};
+
+/* ================= TEXT HELPER ================= */
+void startText(const char *msg) {
+  display.displayClear();
+  display.setTextAlignment(PA_LEFT);
+  display.setSpeed(80);
+  display.displayScroll(msg, PA_LEFT, PA_SCROLL_LEFT, 80);
+}
+
+/* ================= BLUETOOTH CALLBACKS ================= */
+void bt_state_callback(esp_a2d_connection_state_t state, void *ptr) {
+  if (state == ESP_A2D_CONNECTION_STATE_CONNECTED) {
+    btConnected = true;
+    btConnectedAt = millis();
+    displayMode = MODE_CONNECTED_TEXT;
+    startText("CONNECTED");
+  }
+  else if (state == ESP_A2D_CONNECTION_STATE_DISCONNECTED) {
+    btConnected = false;
+    songTitle = "";
+    displayMode = MODE_WAIT;
+    startText("WAITING FOR BT");
+  }
+}
+
+void avrc_metadata_callback(uint8_t id, const uint8_t *text) {
+  if (id == ESP_AVRC_MD_ATTR_TITLE && text) {
+    songTitle = (const char *)text;
+    songDisplayUntil = millis() + SONG_DISPLAY_TIME;
+    displayMode = MODE_SONG;
+    startText(songTitle.c_str());
+  }
+}
+
+/* ================= AUDIO TAP (VU CALC) ================= */
+void raw_audio_callback(const uint8_t *data, uint32_t len) {
+  const int16_t *pcm = (int16_t *)data;
+  int samples = len / 2;
+
+  uint32_t acc[NUM_BANDS] = {0};
+  uint16_t cnt[NUM_BANDS] = {0};
+
+  for (int i = 0; i < samples; i++) {
+    int16_t v = abs(pcm[i]);
+
+    int band;
+    if (i < samples * 0.10) band = 0;
+    else if (i < samples * 0.20) band = 1;
+    else if (i < samples * 0.30) band = 2;
+    else if (i < samples * 0.40) band = 3;
+    else if (i < samples * 0.55) band = 4;
+    else if (i < samples * 0.70) band = 5;
+    else if (i < samples * 0.85) band = 6;
+    else band = 7;
+
+    acc[band] += v;
+    cnt[band]++;
+  }
+
+  for (int b = 0; b < NUM_BANDS; b++) {
+    if (!cnt[b]) continue;
+
+    uint32_t avg = acc[b] / cnt[b];
+    uint8_t lvl = map(avg, 0, 7000, 0, 8);
+    lvl = constrain(lvl, 0, 8);
+
+    if (lvl > bandLevel[b]) bandLevel[b] = lvl;
+    else if (bandLevel[b] > 0) bandLevel[b]--;
+  }
+}
+
+/* ================= SETUP ================= */
+void setup() {
+  Serial.begin(115200);
+  esp_bt_controller_mem_release(ESP_BT_MODE_BLE);
+
+  auto cfg = i2s.defaultConfig(TX_MODE);
+  cfg.sample_rate = 44100;
+  cfg.channels = 2;
+  cfg.bits_per_sample = 16;
+  cfg.pin_bck  = I2S_BCLK;
+  cfg.pin_ws   = I2S_LRC;
+  cfg.pin_data = I2S_DOUT;
+  i2s.begin(cfg);
+
+  display.begin();
+  display.setIntensity(6);
+  startText("WAITING FOR BT");
+
+  a2dp_sink.set_on_connection_state_changed(bt_state_callback);
+  a2dp_sink.set_avrc_metadata_callback(avrc_metadata_callback);
+  a2dp_sink.set_raw_stream_reader(raw_audio_callback);
+  a2dp_sink.set_volume(100);
+  a2dp_sink.start("MY_MUSIC");
+}
+
+/* ================= LOOP ================= */
+void loop() {
+
+  /* ---------- WAITING (REPEAT SCROLL) ---------- */
+  if (!btConnected && displayMode == MODE_WAIT) {
+    if (display.displayAnimate()) {
+      startText("WAITING FOR BT");   // 🔁 repeat scroll
+    }
+    delay(20);
+    return;
+  }
+
+  /* ---------- CONNECTED TEXT (2s) ---------- */
+  if (displayMode == MODE_CONNECTED_TEXT) {
+    display.displayAnimate();
+    if (millis() - btConnectedAt > CONNECT_TEXT_TIME) {
+      displayMode = MODE_VU;
+    }
+    delay(20);
+    return;
+  }
+
+  /* ---------- SONG TITLE ---------- */
+  if (displayMode == MODE_SONG && millis() < songDisplayUntil) {
+    display.displayAnimate();
+    delay(20);
+    return;
+  }
+
+  /* ---------- NORMAL VU ---------- */
+  displayMode = MODE_VU;
+  MD_MAX72XX *mx = display.getGraphicObject();
+  mx->clear();
+
+  for (int x = 0; x < 32; x++) {
+    int band = x % NUM_BANDS;
+    for (int y = 0; y < bandLevel[band]; y++) {
+      mx->setPoint(7 - y, x, true);
+    }
+  }
+
+  delay(30);
+}
