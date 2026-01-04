@@ -11,7 +11,9 @@
 #include <driver/i2s.h>
 #include "MP3DecoderHelix.h"
 
-using namespace libhelix; 
+using namespace libhelix;
+
+/* ================= WIFI CONFIG ================= */ 
 
 /* HTTP MP3 STREAM (MP3 ONLY, NOT AAC) */
 const char* streamURL = "http://media-ice.musicradio.com/ClassicFMMP3";
