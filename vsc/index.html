@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<body style="padding:10px;font-family:Arial;">
+
+<h3>Localhost Tools</h3>
+
+<button onclick="openPage()">Open Localhost Page</button>
+<button onclick="openPage1()">Open Localhost1</button>
+
+<script>
+function openPage() {
+    window.parent.postMessage({
+        command: "openLocalhost"
+    }, "*");
+}
+function openPage1() {
+     window.parent.postMessage({
+        command: "openUrl",
+        url: "http://localhost/vsc/tab/index.html"
+    }, "*");
+}
+</script>
+
+</body>
+</html>
