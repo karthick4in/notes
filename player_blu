@@ -1,0 +1,28 @@
+#include "AudioTools.h"
+#include "BluetoothA2DPSink.h"
+
+#define I2S_BCLK   27
+#define I2S_LRC    26
+#define I2S_DOUT   25
+
+I2SStream i2s;
+BluetoothA2DPSink a2dp_sink(i2s);
+
+void setup() {
+  Serial.begin(115200);
+
+  // Free BLE memory (recommended)
+  esp_bt_controller_mem_release(ESP_BT_MODE_BLE);
+
+  auto cfg = i2s.defaultConfig(TX_MODE);
+  cfg.pin_bck  = I2S_BCLK;
+  cfg.pin_ws   = I2S_LRC;
+  cfg.pin_data = I2S_DOUT;
+
+  i2s.begin(cfg);
+
+  a2dp_sink.start("ESP32_MUSIC");
+}
+
+void loop() {
+}
